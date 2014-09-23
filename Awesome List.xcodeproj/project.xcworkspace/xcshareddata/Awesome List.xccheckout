@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>0954DB78-8143-484D-84CA-BF6128DEDE88</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Awesome List</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>3C8FD28D02CC14CB986DCE3AD7DD117502F16029</key>
+		<string>https://github.com/stromme/ResearchApp.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Awesome List.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>3C8FD28D02CC14CB986DCE3AD7DD117502F16029</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/stromme/ResearchApp.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>3C8FD28D02CC14CB986DCE3AD7DD117502F16029</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>3C8FD28D02CC14CB986DCE3AD7DD117502F16029</string>
+			<key>IDESourceControlWCCName</key>
+			<string>AwesomeList</string>
+		</dict>
+	</array>
+</dict>
+</plist>

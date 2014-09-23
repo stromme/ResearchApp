@@ -4,11 +4,11 @@
         <attribute name="company" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="firstname" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="id" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="lastname" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="password" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="photo" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="username" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="tasks" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tasks" inverseName="members" inverseEntity="Tasks" syncable="YES"/>
     </entity>
@@ -19,15 +19,15 @@
     <entity name="Tasks" representedClassName="Tasks" syncable="YES">
         <attribute name="datetime" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="desc" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="id" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="is_done" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="is_public" optional="YES" attributeType="Boolean" syncable="YES"/>
-        <attribute name="photo" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Members" inverseName="tasks" inverseEntity="Members" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Members" positionX="169" positionY="-18" width="128" height="193"/>
+        <element name="Members" positionX="169" positionY="-18" width="128" height="195"/>
         <element name="Settings" positionX="72" positionY="54" width="128" height="73"/>
         <element name="Tasks" positionX="-63" positionY="-18" width="128" height="163"/>
     </elements>
