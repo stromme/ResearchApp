@@ -8,13 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		8A5C702419D133FB00DFE41B /* ImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5C702319D133FB00DFE41B /* ImageHelper.swift */; };
+		8A7586591A0225670048C816 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7586581A0225670048C816 /* Alamofire.swift */; };
+		8A75865B1A0225750048C816 /* Alamofire-SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A75865A1A0225750048C816 /* Alamofire-SwiftyJSON.swift */; };
+		8A7586631A022B190048C816 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7586621A022B190048C816 /* SwiftyJSON.swift */; };
+		8A7586651A022FA20048C816 /* AwesomeAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7586641A022FA20048C816 /* AwesomeAPI.swift */; };
 		8A92337C19CFDC1E00BCA52E /* Regex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A92337B19CFDC1E00BCA52E /* Regex.swift */; };
 		8A92337E19CFF4A400BCA52E /* SwiftCoreDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A92337D19CFF4A400BCA52E /* SwiftCoreDataHelper.swift */; };
 		8A9233B019D01A1500BCA52E /* TaskViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9233AF19D01A1500BCA52E /* TaskViewCell.swift */; };
 		8A9233E119D0576500BCA52E /* Awesome_List.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 8A9233DF19D0576500BCA52E /* Awesome_List.xcdatamodeld */; };
+		8A96D0721A09125B009F0887 /* UIHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A96D0711A09125B009F0887 /* UIHelper.swift */; };
+		8A96D0741A092C26009F0887 /* Friendship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A96D0731A092C25009F0887 /* Friendship.swift */; };
+		8A96D0761A092C89009F0887 /* Users.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A96D0751A092C89009F0887 /* Users.swift */; };
 		8ADF5AB119D07B6C008260D1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ADF5AB019D07B6C008260D1 /* CoreData.framework */; };
 		8ADF5AB319D083AA008260D1 /* Tasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADF5AB219D083AA008260D1 /* Tasks.swift */; };
-		8ADF5AB519D083AB008260D1 /* Members.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADF5AB419D083AB008260D1 /* Members.swift */; };
 		8ADF5AB719D083AB008260D1 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADF5AB619D083AB008260D1 /* Settings.swift */; };
 		8AECEF9119C7C9DE00D95114 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AECEF9019C7C9DE00D95114 /* MapKit.framework */; };
 		8AECEF9319C7CFA300D95114 /* LocationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AECEF9219C7CFA300D95114 /* LocationViewController.swift */; };
@@ -43,13 +49,19 @@
 
 /* Begin PBXFileReference section */
 		8A5C702319D133FB00DFE41B /* ImageHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageHelper.swift; sourceTree = "<group>"; };
+		8A7586581A0225670048C816 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
+		8A75865A1A0225750048C816 /* Alamofire-SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire-SwiftyJSON.swift"; sourceTree = "<group>"; };
+		8A7586621A022B190048C816 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
+		8A7586641A022FA20048C816 /* AwesomeAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AwesomeAPI.swift; sourceTree = "<group>"; };
 		8A92337B19CFDC1E00BCA52E /* Regex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Regex.swift; sourceTree = "<group>"; };
 		8A92337D19CFF4A400BCA52E /* SwiftCoreDataHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SwiftCoreDataHelper.swift; path = ../SwiftCoreDataHelper.swift; sourceTree = "<group>"; };
 		8A9233AF19D01A1500BCA52E /* TaskViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskViewCell.swift; sourceTree = "<group>"; };
 		8A9233E019D0576500BCA52E /* Awesome_List.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Awesome_List.xcdatamodel; sourceTree = "<group>"; };
+		8A96D0711A09125B009F0887 /* UIHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIHelper.swift; sourceTree = "<group>"; };
+		8A96D0731A092C25009F0887 /* Friendship.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Friendship.swift; sourceTree = "<group>"; };
+		8A96D0751A092C89009F0887 /* Users.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Users.swift; sourceTree = "<group>"; };
 		8ADF5AB019D07B6C008260D1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		8ADF5AB219D083AA008260D1 /* Tasks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tasks.swift; sourceTree = "<group>"; };
-		8ADF5AB419D083AB008260D1 /* Members.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Members.swift; sourceTree = "<group>"; };
 		8ADF5AB619D083AB008260D1 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		8AECEF9019C7C9DE00D95114 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		8AECEF9219C7CFA300D95114 /* LocationViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationViewController.swift; sourceTree = "<group>"; };
@@ -97,8 +109,9 @@
 				8AF7846419C705F0003A16EF /* Awesome List-Bridging-Header.h */,
 				8A9233DF19D0576500BCA52E /* Awesome_List.xcdatamodeld */,
 				8ADF5AB619D083AB008260D1 /* Settings.swift */,
-				8ADF5AB419D083AB008260D1 /* Members.swift */,
+				8A96D0751A092C89009F0887 /* Users.swift */,
 				8ADF5AB219D083AA008260D1 /* Tasks.swift */,
+				8A96D0731A092C25009F0887 /* Friendship.swift */,
 			);
 			name = "Data Model";
 			sourceTree = "<group>";
@@ -106,9 +119,14 @@
 		8A9233AE19CFFA1B00BCA52E /* Helper Class */ = {
 			isa = PBXGroup;
 			children = (
+				8A7586621A022B190048C816 /* SwiftyJSON.swift */,
+				8A75865A1A0225750048C816 /* Alamofire-SwiftyJSON.swift */,
+				8A7586581A0225670048C816 /* Alamofire.swift */,
 				8A92337B19CFDC1E00BCA52E /* Regex.swift */,
 				8A92337D19CFF4A400BCA52E /* SwiftCoreDataHelper.swift */,
 				8A5C702319D133FB00DFE41B /* ImageHelper.swift */,
+				8A7586641A022FA20048C816 /* AwesomeAPI.swift */,
+				8A96D0711A09125B009F0887 /* UIHelper.swift */,
 			);
 			name = "Helper Class";
 			sourceTree = "<group>";
@@ -287,13 +305,19 @@
 				8ADF5AB319D083AA008260D1 /* Tasks.swift in Sources */,
 				8AF7844719C70199003A16EF /* TasksViewController.swift in Sources */,
 				8AF7847219C77EC2003A16EF /* RegisterViewController.swift in Sources */,
+				8A96D0721A09125B009F0887 /* UIHelper.swift in Sources */,
+				8A7586631A022B190048C816 /* SwiftyJSON.swift in Sources */,
 				8A9233E119D0576500BCA52E /* Awesome_List.xcdatamodeld in Sources */,
 				8A92337E19CFF4A400BCA52E /* SwiftCoreDataHelper.swift in Sources */,
+				8A75865B1A0225750048C816 /* Alamofire-SwiftyJSON.swift in Sources */,
 				8AF7844319C70199003A16EF /* AppDelegate.swift in Sources */,
-				8ADF5AB519D083AB008260D1 /* Members.swift in Sources */,
+				8A7586651A022FA20048C816 /* AwesomeAPI.swift in Sources */,
+				8A7586591A0225670048C816 /* Alamofire.swift in Sources */,
 				8A92337C19CFDC1E00BCA52E /* Regex.swift in Sources */,
+				8A96D0741A092C26009F0887 /* Friendship.swift in Sources */,
 				8AF7844519C70199003A16EF /* HomeViewController.swift in Sources */,
 				8AF7847419C78637003A16EF /* TaskViewController.swift in Sources */,
+				8A96D0761A092C89009F0887 /* Users.swift in Sources */,
 				8ADF5AB719D083AB008260D1 /* Settings.swift in Sources */,
 				8AECEF9319C7CFA300D95114 /* LocationViewController.swift in Sources */,
 				8A9233B019D01A1500BCA52E /* TaskViewCell.swift in Sources */,
@@ -353,6 +377,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -368,7 +393,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -395,6 +420,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -404,7 +430,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
@@ -417,6 +443,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "Awesome List/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -432,6 +459,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "Awesome List/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

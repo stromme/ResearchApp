@@ -16,7 +16,10 @@ class TaskViewController: UITableViewController, UIActionSheetDelegate, UIImageP
     @IBOutlet weak var task_done: UISwitch!
     @IBOutlet weak var task_photo: UIImageView!
     @IBOutlet weak var task_date: UIDatePicker!
-    var task_original_photo: UIImage = UIImage()
+    @IBOutlet weak var task_location_name: UITextField!
+    var task_original_photo: UIImage =  UIImage()
+    var task_id: String?
+    var action: String = "add"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,38 +46,197 @@ class TaskViewController: UITableViewController, UIActionSheetDelegate, UIImageP
     }
     
     @IBAction func clickSaveTask(sender: AnyObject) {
-        let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
-        var task:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: moc)
-         as Tasks
+        var alertView = UIAlertView()
+        alertView.addButtonWithTitle("Okay")
 
-        task.id = "\(NSDate())"
-        task.title = task_title.text
-        task.desc = task_desc.text
-        task.datetime = task_date.date
-        task.is_done = task_done.on
-        
-        task.is_public = task_public.on
-        var taskImageData = NSData()
-        let original_size = task_original_photo.size
-        let zero = CGSizeMake(0,0)
-        if(original_size.width>zero.width || original_size.height>zero.height){
-            taskImageData = UIImageJPEGRepresentation(task_original_photo, 100)
+        if(self.action == "add"){
+            alertView.title = "Add New Task"
+            if(task_title.text != "" && task_desc != ""){
+                let params = [
+                    "key": "036db17bac87dbb1e610df07ccc2468e",
+                    "title": self.task_title.text,
+                    "desc": self.task_desc.text,
+                    "public": (self.task_public.on) ? 1 : 0,
+                    "done": (self.task_done.on) ? 1 : 0,
+                    "due": self.task_date.date,
+                    "location": self.task_location_name.text
+                ]
+
+                var taskImageData: NSData?
+                var imageEmpty: Bool = true
+                let original_size: CGSize = self.task_original_photo.size
+                let zero = CGSizeMake(0,0)
+                if(original_size.width>zero.width || original_size.height>zero.height){
+                    taskImageData = UIImageJPEGRepresentation(self.task_original_photo, 100)
+                    imageEmpty = false
+                }
+                
+                let req = API()
+                var uploadProgress: SwifterHTTPRequest.UploadProgressHandler? = nil
+                if(!imageEmpty){
+                    uploadProgress = {
+                        (bytesWritten, totalBytesWritten, totalBytesExpectedToWrite) in
+                        // TODO: Show percentage uploaded upon loading
+                        println("written: \(bytesWritten), total written: \(totalBytesWritten), expected: \(totalBytesExpectedToWrite)")
+                    }
+                }
+                
+                let successHandler: API.SuccessHandler = { (json, string, response) in
+                    if(json["status"].integerValue==1){
+                        let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                        var task:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: moc)
+                            as Tasks
+
+                        task.id = json["id"].stringValue!
+                        task.title = self.task_title.text
+                        task.desc = self.task_desc.text
+                        task.datetime = self.task_date.date
+                        task.is_done = self.task_done.on
+                        task.is_public = self.task_public.on
+                        task.user_id = json["user_id"].stringValue!
+                        task.location = self.task_location_name.text
+                        task.photo = taskImageData!
+
+                        SwiftCoreDataHelper.saveManagedObjectContext(moc)
+                        
+                        self.navigationController?.popViewControllerAnimated(true)
+                    } else {
+                        alertView.message = json["message"].stringValue
+                        alertView.show()
+                    }
+                    return
+                }
+                
+                let failureHandler: API.FailureHandler = { (error: NSError) in
+                    println(error)
+                    alertView.message = "Could not connect to server"
+                    alertView.show()
+                }
+
+                req.request(.POST, endpoint: "tasks", parameters: params, media_upload: (!imageEmpty) ? taskImageData : nil, media_filename: "media.jpg",
+                    uploadProgress: uploadProgress, downloadProgress: nil,
+                    success: successHandler, failure: failureHandler
+                )
+            } else {
+                alertView.message = "Please add at least title and description"
+                alertView.show()
+            }
+        } else if(self.action == "edit") {
+            alertView.title = "Update Task"
+            if(task_title.text != "" && task_desc != ""){
+                let params = [
+                    "key": "036db17bac87dbb1e610df07ccc2468e",
+                    "title": self.task_title.text,
+                    "desc": self.task_desc.text,
+                    "public": (self.task_public.on) ? 1 : 0,
+                    "done": (self.task_done.on) ? 1 : 0,
+                    "due": self.task_date.date,
+                    "location": self.task_location_name.text
+                ]
+                
+                var taskImageData: NSData?
+                var imageEmpty: Bool = true
+                let original_size: CGSize = self.task_original_photo.size
+                let zero = CGSizeMake(0,0)
+                if(original_size.width>zero.width || original_size.height>zero.height){
+                    taskImageData = UIImageJPEGRepresentation(self.task_original_photo, 100)
+                    imageEmpty = false
+                }
+                
+                let req = API(responseType: "string")
+                var uploadProgress: SwifterHTTPRequest.UploadProgressHandler? = nil
+                if(!imageEmpty){
+                    uploadProgress = {
+                        (bytesWritten, totalBytesWritten, totalBytesExpectedToWrite) in
+                        /*println("bytes written")
+                        println(bytesWritten)
+                        println("total bytes written")
+                        println(totalBytesWritten)
+                        println("total bytes expected to write")
+                        println(totalBytesExpectedToWrite)*/
+                    }
+                }
+                
+                let successHandler: API.SuccessHandler = { (json, string, response) in
+                    println("string")
+                    println(string)
+                    if(json["status"].integerValue==1){
+                        // TODO: Save data to task database
+                        // TODO: Save this photo to task database
+                        println("---id---")
+                        println(json["id"])
+                    } else {
+                        alertView.message = json["message"].stringValue
+                        alertView.show()
+                    }
+                    
+                    
+                    //self.loginButton.hidden = false
+                    
+                    return
+                }
+                
+                let failureHandler: API.FailureHandler = { (error: NSError) in
+                    println(error)
+                    alertView.message = "Could not connect to server"
+                    alertView.show()
+                    
+                    //indicator.stop()
+                    //self.loginButton.hidden = false
+                }
+
+                if(task_id != nil){
+                    req.request(.POST, endpoint: "tasks_with_media/\(task_id)", parameters: params, media_upload: (!imageEmpty) ? taskImageData : nil, media_filename: "media.jpg",
+                        uploadProgress: uploadProgress, downloadProgress: nil,
+                        success: successHandler, failure: failureHandler
+                    )
+                } else {
+                    alertView.message = "Task id not valid"
+                    alertView.show()
+                }
+                
+                // Without PHOTO Update
+                /*Alamofire.manager.request(.PUT, API.url("tasks/\(task)id)"), parameters: params)
+                .responseSwiftyJSON {
+                (request, response, json, error) in
+                println("---raw---")
+                println(json)
+                println("---error---")
+                println(error)
+                println("---status---")
+                println(json["status"])
+                println("---message---")
+                println(json["message"])
+                /*let users = json["result"]["users"]
+                
+                // Make it array
+                let users_arr: Array<JSON> = json["result"]["users"].arrayValue!
+                println("---count---")
+                println(users_arr.count)
+                println("---each one---")
+                for (index, user) in enumerate(users_arr) {
+                println("\(index+1) ----")
+                println(user)
+                }*/
+                }*/
+            } else {
+                alertView.message = "Please add at least title and description"
+                alertView.show()
+            }
         }
-        task.photo = taskImageData
-        
-        SwiftCoreDataHelper.saveManagedObjectContext(moc)
-        
-        self.navigationController?.popViewControllerAnimated(true)
     }
     
     func chooseImage(recognizer: UITapGestureRecognizer){
         let actionSheet:UIActionSheet = UIActionSheet()
-        //actionSheet.title = "Task photo"
         actionSheet.delegate = self
-        actionSheet.addButtonWithTitle("Cancel")
-        actionSheet.addButtonWithTitle("Library")
+        actionSheet.title = "Task Photo"
+        
         actionSheet.addButtonWithTitle("Take a Photo")
-        actionSheet.cancelButtonIndex = 0
+        actionSheet.addButtonWithTitle("Camera Roll")
+        actionSheet.addButtonWithTitle("Library")
+        
+        actionSheet.addButtonWithTitle("Cancel")
+        actionSheet.cancelButtonIndex = 3
         actionSheet.showInView(self.view)
     }
     
@@ -82,6 +244,12 @@ class TaskViewController: UITableViewController, UIActionSheetDelegate, UIImageP
         // println("index %d %@", buttonIndex, sheet.buttonTitleAtIndex(buttonIndex));
         
         if(sheet.buttonTitleAtIndex(buttonIndex) == "Library"){
+            let imagePicker: UIImagePickerController = UIImagePickerController()
+            imagePicker.delegate = self
+            imagePicker.sourceType = UIImagePickerControllerSourceType.PhotoLibrary
+            self.presentViewController(imagePicker, animated: true, completion: nil)
+        }
+        else if(sheet.buttonTitleAtIndex(buttonIndex) == "Camera Roll"){
             let imagePicker: UIImagePickerController = UIImagePickerController()
             imagePicker.delegate = self
             imagePicker.sourceType = UIImagePickerControllerSourceType.SavedPhotosAlbum

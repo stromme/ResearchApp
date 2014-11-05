@@ -15,10 +15,12 @@ class Tasks: NSManagedObject {
     @NSManaged var datetime: NSDate
     @NSManaged var desc: String
     @NSManaged var id: String
+    @NSManaged var user_id: String
     @NSManaged var is_done: NSNumber
     @NSManaged var is_public: NSNumber
     @NSManaged var photo: NSData
     @NSManaged var title: String
-    @NSManaged var members: Members
+    @NSManaged var location: String
+    @NSManaged var users: Users
 
 }

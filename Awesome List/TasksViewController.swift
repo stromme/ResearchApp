@@ -15,6 +15,25 @@ class TasksViewController: UITableViewController {
                             
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if(strcmp("delete_task", "")<0){
+            let params = [
+                "key": "036db17bac87dbb1e610df07ccc2468e"
+            ]
+            let task_id = 1;
+            Alamofire.manager.request(.DELETE, API.url("tasks/\(task_id)"), parameters: params)
+                .responseSwiftyJSON {
+                    (request, response, json, error) in
+                    println("---raw---")
+                    println(json)
+                    println("---error---")
+                    println(error)
+                    println("---status---")
+                    println(json["status"])
+                    println("---message---")
+                    println(json["message"])
+            }
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -67,13 +86,13 @@ class TasksViewController: UITableViewController {
         let desc = taskDict.objectForKey("desc") as String
         let imageData:NSData? = taskDict.objectForKey("photo") as? NSData
 
-        var photo:UIImage = UIImage(data: NSData())
+        var photo:UIImage = UIImage(data: NSData())!
         if(imageData == NSData()){
             cell.task_photo.image = UIImage(named: "icon-photo")
             cell.task_photo.layer.borderWidth = 1.0;
             cell.task_photo.layer.borderColor = UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1.0).CGColor
         } else {
-            photo = UIImage(data:imageData!)
+            photo = UIImage(data:imageData!)!
             let resizedSize = ImageHelper.aspectFill(photo.size, frameSize: cell.task_photo.frame.size)
             let photoResized = ImageHelper.scaleImage(photo, newSize: resizedSize)
             cell.task_photo.image = photoResized
@@ -87,20 +106,12 @@ class TasksViewController: UITableViewController {
         
         cell.btn_public.tag = indexPath.row
         cell.btn_public.addTarget(self, action: "updatePrivacy:", forControlEvents: UIControlEvents.TouchUpInside)
-        cell.btn_done.tag = indexPath.row
-        cell.btn_done.addTarget(self, action: "updateDone:", forControlEvents: UIControlEvents.TouchUpInside)
 
         return cell
     }
     
     func updatePrivacy(sender:UIButton){
-        println("yeah")
         sender.setTitle("Private", forState: UIControlState.Normal)
-    }
-    
-    func updateDone(sender:UISwitch){
-        println(sender.tag)
-        println(sender.on)
     }
 }
 

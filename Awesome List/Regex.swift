@@ -15,7 +15,7 @@ class Regex {
     init(_ pattern: String) {
         self.pattern = pattern
         var error: NSError?
-        self.internalExpression = NSRegularExpression(pattern: pattern, options: .CaseInsensitive, error: &error)
+        self.internalExpression = NSRegularExpression(pattern: pattern, options: .CaseInsensitive, error: &error)!
     }
     
     func test(input: String) -> Bool {
@@ -33,7 +33,7 @@ func =~ (input: String, pattern: String) -> Bool {
 func isValidEmail(input: String) -> Bool {
     let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}"
     
-    var emailTest:NSPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+    var emailTest:NSPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegEx)!
     let result = emailTest.evaluateWithObject(input)
     
     return result

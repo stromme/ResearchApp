@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6220.17" systemVersion="13E28" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
-    <entity name="Members" representedClassName="Members" syncable="YES">
-        <attribute name="company" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="firstname" optional="YES" attributeType="String" syncable="YES"/>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6252" systemVersion="13F34" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="Friendship" representedClassName="Friendship" syncable="YES">
+        <attribute name="friend_id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="lastname" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="password" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
-        <attribute name="username" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="tasks" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tasks" inverseName="members" inverseEntity="Tasks" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="users" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Users" inverseName="friendship" inverseEntity="Users" syncable="YES"/>
     </entity>
     <entity name="Settings" representedClassName="Settings" syncable="YES">
         <attribute name="value" optional="YES" attributeType="String" syncable="YES"/>
@@ -22,13 +16,30 @@
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="is_done" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="is_public" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="members" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Members" inverseName="tasks" inverseEntity="Members" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="users" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Users" inverseName="tasks" inverseEntity="Users" syncable="YES"/>
+    </entity>
+    <entity name="Users" representedClassName="Users" syncable="YES">
+        <attribute name="background" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="company" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="firstname" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="lastname" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="password" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="username" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="friendship" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Friendship" inverseName="users" inverseEntity="Friendship" syncable="YES"/>
+        <relationship name="tasks" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tasks" inverseName="users" inverseEntity="Tasks" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Members" positionX="169" positionY="-18" width="128" height="195"/>
+        <element name="Friendship" positionX="54" positionY="72" width="128" height="105"/>
         <element name="Settings" positionX="72" positionY="54" width="128" height="73"/>
-        <element name="Tasks" positionX="-63" positionY="-18" width="128" height="163"/>
+        <element name="Tasks" positionX="-63" positionY="-18" width="128" height="193"/>
+        <element name="Users" positionX="169" positionY="-18" width="128" height="225"/>
     </elements>
 </model>

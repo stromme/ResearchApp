@@ -19,9 +19,9 @@ class SwiftCoreDataHelper: NSObject {
 
         let path:NSString = "\(SwiftCoreDataHelper.directoryForDatabaseFilename()) + \(SwiftCoreDataHelper.databaseFilename())"
         
-        let url:NSURL = NSURL(fileURLWithPath: path)
+        let url:NSURL = NSURL(fileURLWithPath: path)!
         
-        let managedModel:NSManagedObjectModel = NSManagedObjectModel.mergedModelFromBundles(nil)
+        let managedModel:NSManagedObjectModel = NSManagedObjectModel.mergedModelFromBundles(nil)!
         
         var storeCoordinator:NSPersistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: managedModel)
         
@@ -69,6 +69,35 @@ class SwiftCoreDataHelper: NSObject {
         
         if(predicate != nil) {
             fetchRequest.predicate = predicate!
+        }
+        
+        if(input_sorter != nil){
+            var sorter: NSSortDescriptor = input_sorter!
+            fetchRequest.sortDescriptors = [sorter]
+        }
+        
+        fetchRequest.returnsObjectsAsFaults = false
+        var results:NSArray = managedObjectContext.executeFetchRequest(fetchRequest, error:&error)!
+        
+        return results
+    }
+    
+    enum Compound: String {
+        case AND = "AND"
+        case OR = "OR"
+    }
+    
+    class func fetchEntities(className:String, withPredicate predicates: [NSPredicate], compound: Compound, withSorter input_sorter:NSSortDescriptor?, managedObjectContext:NSManagedObjectContext)->NSArray{
+        var error: NSError? = nil
+        var fetchRequest: NSFetchRequest = NSFetchRequest(entityName: className)
+        
+        if(compound.rawValue == "AND"){
+            let predcompound = NSCompoundPredicate.andPredicateWithSubpredicates(predicates)
+            fetchRequest.predicate = predcompound
+        }
+        else if(compound.rawValue == "OR"){
+            let predcompound = NSCompoundPredicate.orPredicateWithSubpredicates(predicates)
+            fetchRequest.predicate = predcompound
         }
         
         if(input_sorter != nil){

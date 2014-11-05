@@ -1,5 +1,5 @@
 //
-//  Members.swift
+//  Users.swift
 //  Awesome List
 //
 //  Created by Josua Sihombing on 9/22/14.
@@ -9,9 +9,9 @@
 import Foundation
 import CoreData
 
-@objc(Members)
-class Members: NSManagedObject {
-
+@objc(Users)
+class Users: NSManagedObject {
+    
     @NSManaged var company: String
     @NSManaged var email: String
     @NSManaged var firstname: String
@@ -20,7 +20,9 @@ class Members: NSManagedObject {
     @NSManaged var location: String
     @NSManaged var password: String
     @NSManaged var photo: NSData
+    @NSManaged var background: NSData
     @NSManaged var username: String
+    @NSManaged var friendship: Friendship
     @NSManaged var tasks: Tasks
-
+    
 }

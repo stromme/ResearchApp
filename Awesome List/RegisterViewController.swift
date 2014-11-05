@@ -6,21 +6,34 @@
 //  Copyright (c) 2014 Hatchspot. All rights reserved.
 //
 
+import Foundation
 import UIKit
 import CoreData
 
-class RegisterViewController: UITableViewController {
+class RegisterViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var reg_username: UITextField!
     @IBOutlet weak var reg_firstname: UITextField!
     @IBOutlet weak var reg_lastname: UITextField!
     @IBOutlet weak var reg_email: UITextField!
     @IBOutlet weak var reg_password: UITextField!
     @IBOutlet weak var reg_confirm: UITextField!
-
+    @IBOutlet weak var reg_company: UITextField!
+    @IBOutlet weak var reg_location: UITextField!
+    let appDelegate = (UIApplication.sharedApplication().delegate) as AppDelegate
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        reg_username.delegate = self
+        reg_firstname.delegate = self
+        reg_firstname.delegate = self
+        reg_lastname.delegate = self
+        reg_email.delegate = self
+        reg_password.delegate = self
+        reg_confirm.delegate = self
+        reg_company.delegate = self
+        reg_location.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -64,17 +77,76 @@ class RegisterViewController: UITableViewController {
             alertView.show()
         }
         else {
-            // Ref to app Delegate
-            let appDelegate = (UIApplication.sharedApplication().delegate) as AppDelegate
+            let indicator = CustomIndicator(view: self.view)
+            indicator.animate()
+            
+            let params = [
+                "username": reg_username.text,
+                "firstname": reg_firstname.text,
+                "lastname": reg_lastname.text,
+                "email": reg_email.text,
+                "password": reg_password.text,
+                "company": reg_company.text,
+                "location": reg_location.text
+            ]
+            Alamofire.manager.request(.POST, API.url("account"), parameters: params)
+            .responseSwiftyJSON {
+                (request, response, json, error) in
+                
+                if(json.boolValue){
+                    if(json["status"].integerValue==1){
+                        // Ref manage object context
+                        let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                        
+                        var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: moc) as Users
+                        
+                        user.id = json["id"].stringValue!
+                        user.username = self.reg_username.text
+                        user.password = self.reg_password.text
+                        user.firstname = self.reg_firstname.text
+                        user.lastname = self.reg_lastname.text
+                        user.email = self.reg_email.text
+                        user.location = self.reg_location.text
+                        let defaultPhoto = UIImage(named: "default-portrait")
+                        user.photo = UIImageJPEGRepresentation(defaultPhoto, 100)
+                        let defaultBg = UIImage(named: "login-bg-blur-iphone5")
+                        user.background = UIImageJPEGRepresentation(defaultBg, 100)
+                        SwiftCoreDataHelper.saveManagedObjectContext(moc)
 
-            // Ref manage object context
-            let context: NSManagedObjectContext = appDelegate.managedObjectContext!
-            let entityDesc = NSEntityDescription.entityForName("Members", inManagedObjectContext: context)
-            
-            
-            alertView.message = "Sucessfully registered!"
-            alertView.show()
-            self.performSegueWithIdentifier("backToLogin", sender: self)
+                        indicator.stop()
+                        alertView.message = "Sucessfully registered! You may now login."
+                        alertView.show()
+
+                        self.performSegueWithIdentifier("backToLogin", sender: self)
+                    } else {
+                        alertView.message = json["message"].stringValue
+                        alertView.show()
+                    }
+                } else {
+                    println(error)
+                    alertView.message = error?.description
+                    alertView.show()
+                }
+            }
         }
+    }
+    
+    // Hide keyboard on press return
+    func textFieldShouldReturn(textField: UITextField!) -> Bool {
+        self.clickDoneRegister(textField)
+        return true;
+    }
+    
+    override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
+        reg_username.resignFirstResponder()
+        reg_firstname.resignFirstResponder()
+        reg_firstname.resignFirstResponder()
+        reg_lastname.resignFirstResponder()
+        reg_email.resignFirstResponder()
+        reg_password.resignFirstResponder()
+        reg_confirm.resignFirstResponder()
+        reg_company.resignFirstResponder()
+        reg_location.resignFirstResponder()
+        self.view.endEditing(true)
     }
 }
