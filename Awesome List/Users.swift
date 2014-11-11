@@ -12,16 +12,17 @@ import CoreData
 @objc(Users)
 class Users: NSManagedObject {
     
-    @NSManaged var company: String
-    @NSManaged var email: String
-    @NSManaged var firstname: String
     @NSManaged var id: String
+    @NSManaged var username: String
+    @NSManaged var firstname: String
     @NSManaged var lastname: String
+    @NSManaged var email: String
+    @NSManaged var company: String
     @NSManaged var location: String
-    @NSManaged var password: String
     @NSManaged var photo: NSData
     @NSManaged var background: NSData
-    @NSManaged var username: String
+    @NSManaged var photo_url: String
+    @NSManaged var background_url: String
     @NSManaged var friendship: Friendship
     @NSManaged var tasks: Tasks
     

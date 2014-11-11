@@ -37,30 +37,32 @@ class SettingsViewController: UITableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         if(indexPath.row==2){
             let indicator = CustomIndicator(view: self.view)
-            indicator.animate()
-            
-            let moc: NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
-            var fetchRequest: NSFetchRequest = NSFetchRequest(entityName: "Settings")
-            let resultPredicate1: NSPredicate = NSPredicate(format: "varname = %@", "username")!
-            let resultPredicate2: NSPredicate = NSPredicate(format: "varname = %@", "key")!
-            var sorter: NSSortDescriptor = NSSortDescriptor(key: "varname" , ascending: true)
-            
-            let results = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: [resultPredicate1, resultPredicate2], compound: .OR, withSorter: sorter, managedObjectContext: moc)
-            if(results.count>0){
-                for setting in results {
-                    var settingItem = setting as Settings
-                    moc.deleteObject(settingItem)
+            indicator.animate({
+                let moc: NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                var fetchRequest: NSFetchRequest = NSFetchRequest(entityName: "Settings")
+                let resultPredicate1: NSPredicate = NSPredicate(format: "varname = %@", "username")!
+                let resultPredicate2: NSPredicate = NSPredicate(format: "varname = %@", "key")!
+                let resultPredicate3: NSPredicate = NSPredicate(format: "varname = %@", "id")!
+                var sorter: NSSortDescriptor = NSSortDescriptor(key: "varname" , ascending: true)
+                
+                let results = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: [resultPredicate1, resultPredicate2, resultPredicate3], compound: .OR, withSorter: sorter, managedObjectContext: moc)
+                if(results.count>0){
+                    for setting in results {
+                        var settingItem = setting as Settings
+                        moc.deleteObject(settingItem)
+                    }
+                    SwiftCoreDataHelper.saveManagedObjectContext(moc)
                 }
-                SwiftCoreDataHelper.saveManagedObjectContext(moc)
-            }
-            
-            // Fake progress
-            let delay = 1.0 * Double(NSEC_PER_SEC)
-            let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay))
-            dispatch_after(time, dispatch_get_main_queue()) {
-                indicator.stop()
-                self.performSegueWithIdentifier("returnToLogin", sender: self)
-            }
+                
+                // Fake progress
+                let delay = 0.5 * Double(NSEC_PER_SEC)
+                let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay))
+                dispatch_after(time, dispatch_get_main_queue()) {
+                    indicator.stop({
+                        self.performSegueWithIdentifier("returnToLogin", sender: self)
+                    })
+                }
+            }, label: "Logging out")
         }
     }
 

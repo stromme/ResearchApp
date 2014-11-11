@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A0174E21A117B13001AD3E5 /* HomeViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0174E11A117B13001AD3E5 /* HomeViewCell.swift */; };
+		8A0174E41A11A1E8001AD3E5 /* HomeViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8A0174E31A11A1E8001AD3E5 /* HomeViewCell.xib */; };
+		8A4D55651A110B1500B99DBD /* FriendshipViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D55641A110B1500B99DBD /* FriendshipViewController.swift */; };
+		8A4D55671A110C4A00B99DBD /* FriendViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D55661A110C4A00B99DBD /* FriendViewCell.swift */; };
 		8A5C702419D133FB00DFE41B /* ImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5C702319D133FB00DFE41B /* ImageHelper.swift */; };
 		8A7586591A0225670048C816 /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7586581A0225670048C816 /* Alamofire.swift */; };
 		8A75865B1A0225750048C816 /* Alamofire-SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A75865A1A0225750048C816 /* Alamofire-SwiftyJSON.swift */; };
@@ -48,6 +52,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8A0174E11A117B13001AD3E5 /* HomeViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeViewCell.swift; sourceTree = "<group>"; };
+		8A0174E31A11A1E8001AD3E5 /* HomeViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HomeViewCell.xib; sourceTree = "<group>"; };
+		8A4D55641A110B1500B99DBD /* FriendshipViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FriendshipViewController.swift; sourceTree = "<group>"; };
+		8A4D55661A110C4A00B99DBD /* FriendViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FriendViewCell.swift; sourceTree = "<group>"; };
 		8A5C702319D133FB00DFE41B /* ImageHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageHelper.swift; sourceTree = "<group>"; };
 		8A7586581A0225670048C816 /* Alamofire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alamofire.swift; sourceTree = "<group>"; };
 		8A75865A1A0225750048C816 /* Alamofire-SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Alamofire-SwiftyJSON.swift"; sourceTree = "<group>"; };
@@ -134,6 +142,7 @@
 		8AF7843419C70199003A16EF = {
 			isa = PBXGroup;
 			children = (
+				8A0174E31A11A1E8001AD3E5 /* HomeViewCell.xib */,
 				8ADF5AB019D07B6C008260D1 /* CoreData.framework */,
 				8AECEF9019C7C9DE00D95114 /* MapKit.framework */,
 				8AF7843F19C70199003A16EF /* Awesome List */,
@@ -169,6 +178,9 @@
 				8AF7847319C78637003A16EF /* TaskViewController.swift */,
 				8AECEF9219C7CFA300D95114 /* LocationViewController.swift */,
 				8A9233AF19D01A1500BCA52E /* TaskViewCell.swift */,
+				8A4D55641A110B1500B99DBD /* FriendshipViewController.swift */,
+				8A4D55661A110C4A00B99DBD /* FriendViewCell.swift */,
+				8A0174E11A117B13001AD3E5 /* HomeViewCell.swift */,
 			);
 			path = "Awesome List";
 			sourceTree = "<group>";
@@ -283,6 +295,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A0174E41A11A1E8001AD3E5 /* HomeViewCell.xib in Resources */,
 				8AF7844A19C70199003A16EF /* Main.storyboard in Resources */,
 				8AF7844C19C70199003A16EF /* Images.xcassets in Resources */,
 			);
@@ -319,9 +332,12 @@
 				8AF7847419C78637003A16EF /* TaskViewController.swift in Sources */,
 				8A96D0761A092C89009F0887 /* Users.swift in Sources */,
 				8ADF5AB719D083AB008260D1 /* Settings.swift in Sources */,
+				8A4D55671A110C4A00B99DBD /* FriendViewCell.swift in Sources */,
 				8AECEF9319C7CFA300D95114 /* LocationViewController.swift in Sources */,
 				8A9233B019D01A1500BCA52E /* TaskViewCell.swift in Sources */,
 				8AF7847019C77E3C003A16EF /* SettingsViewController.swift in Sources */,
+				8A0174E21A117B13001AD3E5 /* HomeViewCell.swift in Sources */,
+				8A4D55651A110B1500B99DBD /* FriendshipViewController.swift in Sources */,
 				8AF7846E19C75BB0003A16EF /* ProfileViewController.swift in Sources */,
 				8AF7846A19C74BB2003A16EF /* LoginViewController.swift in Sources */,
 				8A5C702419D133FB00DFE41B /* ImageHelper.swift in Sources */,

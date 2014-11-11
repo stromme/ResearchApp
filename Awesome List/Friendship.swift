@@ -13,8 +13,10 @@ import CoreData
 class Friendship: NSManagedObject {
     
     @NSManaged var id: String
-    @NSManaged var user_id: String
+    @NSManaged var my_id: String
+    @NSManaged var my_username: String
     @NSManaged var friend_id: String
+    @NSManaged var friend_username: String
     @NSManaged var users: Users
     
 }

@@ -15,6 +15,7 @@ class TaskViewCell: UITableViewCell {
     @IBOutlet weak var task_private: UIImageView!
     @IBOutlet weak var icon_public: UIImageView!
     @IBOutlet weak var btn_public: UIButton!
+    var loaded: Bool = false
 
     override func awakeFromNib() {
         super.awakeFromNib()

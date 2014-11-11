@@ -1622,4 +1622,5 @@ public func download(resumeData data: NSData, destination: Request.DownloadFileD
 
 struct Alamofire {
     static let manager = Manager.sharedInstance
+    static let request = Request.self
 }

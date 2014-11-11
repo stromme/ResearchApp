@@ -19,6 +19,7 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var reg_confirm: UITextField!
     @IBOutlet weak var reg_company: UITextField!
     @IBOutlet weak var reg_location: UITextField!
+    @IBOutlet var registerTableView: UITableView!
     let appDelegate = (UIApplication.sharedApplication().delegate) as AppDelegate
     
     override func viewDidLoad() {
@@ -34,6 +35,8 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
         reg_confirm.delegate = self
         reg_company.delegate = self
         reg_location.delegate = self
+        let tapGestureRecognizer: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "hideKeyboard:")
+        registerTableView.addGestureRecognizer(tapGestureRecognizer)
     }
 
     override func didReceiveMemoryWarning() {
@@ -42,6 +45,16 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
     }
     
     @IBAction func clickDoneRegister(sender: AnyObject) {
+        reg_username.resignFirstResponder()
+        reg_firstname.resignFirstResponder()
+        reg_firstname.resignFirstResponder()
+        reg_lastname.resignFirstResponder()
+        reg_email.resignFirstResponder()
+        reg_password.resignFirstResponder()
+        reg_confirm.resignFirstResponder()
+        reg_company.resignFirstResponder()
+        reg_location.resignFirstResponder()
+
         var alertView = UIAlertView()
         alertView.title = "Register"
         alertView.addButtonWithTitle("Okay")
@@ -78,56 +91,60 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
         }
         else {
             let indicator = CustomIndicator(view: self.view)
-            indicator.animate()
-            
-            let params = [
-                "username": reg_username.text,
-                "firstname": reg_firstname.text,
-                "lastname": reg_lastname.text,
-                "email": reg_email.text,
-                "password": reg_password.text,
-                "company": reg_company.text,
-                "location": reg_location.text
-            ]
-            Alamofire.manager.request(.POST, API.url("account"), parameters: params)
-            .responseSwiftyJSON {
-                (request, response, json, error) in
-                
-                if(json.boolValue){
-                    if(json["status"].integerValue==1){
-                        // Ref manage object context
-                        let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
-                        
-                        var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: moc) as Users
-                        
-                        user.id = json["id"].stringValue!
-                        user.username = self.reg_username.text
-                        user.password = self.reg_password.text
-                        user.firstname = self.reg_firstname.text
-                        user.lastname = self.reg_lastname.text
-                        user.email = self.reg_email.text
-                        user.location = self.reg_location.text
-                        let defaultPhoto = UIImage(named: "default-portrait")
-                        user.photo = UIImageJPEGRepresentation(defaultPhoto, 100)
-                        let defaultBg = UIImage(named: "login-bg-blur-iphone5")
-                        user.background = UIImageJPEGRepresentation(defaultBg, 100)
-                        SwiftCoreDataHelper.saveManagedObjectContext(moc)
+            indicator.animate({
+                let params = [
+                    "username": self.reg_username.text,
+                    "firstname": self.reg_firstname.text,
+                    "lastname": self.reg_lastname.text,
+                    "email": self.reg_email.text,
+                    "password": self.reg_password.text,
+                    "company": self.reg_company.text,
+                    "location": self.reg_location.text
+                ]
+                Alamofire.manager.request(.POST, API.url("account"), parameters: params)
+                .responseSwiftyJSON {
+                    (request, response, json, error) in
+                    
+                    if(json.boolValue){
+                        if(json["status"].integerValue==1){
+                            // Ref manage object context
+                            let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                            
+                            var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: moc) as Users
+                            
+                            user.id = json["id"].stringValue!
+                            user.username = self.reg_username.text
+                            user.firstname = self.reg_firstname.text
+                            user.lastname = self.reg_lastname.text
+                            user.email = self.reg_email.text
+                            user.location = self.reg_location.text
+                            let defaultPhoto = UIImage(named: "default-portrait")
+                            user.photo = UIImageJPEGRepresentation(defaultPhoto, 100)
+                            let defaultBg = UIImage(named: "login-bg-blur-iphone5")
+                            user.background = UIImageJPEGRepresentation(defaultBg, 100)
+                            SwiftCoreDataHelper.saveManagedObjectContext(moc)
 
-                        indicator.stop()
-                        alertView.message = "Sucessfully registered! You may now login."
-                        alertView.show()
+                            indicator.stop({
+                                alertView.message = "Sucessfully registered! You may now login."
+                                alertView.show()
 
-                        self.performSegueWithIdentifier("backToLogin", sender: self)
+                                self.performSegueWithIdentifier("backToLogin", sender: self)
+                            })
+                        } else {
+                            indicator.stop({
+                                alertView.message = json["message"].stringValue
+                                alertView.show()
+                            })
+                        }
                     } else {
-                        alertView.message = json["message"].stringValue
-                        alertView.show()
+                        indicator.stop({
+                            println(error)
+                            alertView.message = error?.description
+                            alertView.show()
+                        })
                     }
-                } else {
-                    println(error)
-                    alertView.message = error?.description
-                    alertView.show()
                 }
-            }
+            }, label: "Submitting")
         }
     }
     
@@ -137,7 +154,7 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
         return true;
     }
     
-    override func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
+    func hideKeyboard(recognizer: UITapGestureRecognizer){
         reg_username.resignFirstResponder()
         reg_firstname.resignFirstResponder()
         reg_firstname.resignFirstResponder()
@@ -147,6 +164,5 @@ class RegisterViewController: UITableViewController, UITextFieldDelegate {
         reg_confirm.resignFirstResponder()
         reg_company.resignFirstResponder()
         reg_location.resignFirstResponder()
-        self.view.endEditing(true)
     }
 }

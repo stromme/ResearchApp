@@ -12,14 +12,16 @@ import CoreData
 @objc(Tasks)
 class Tasks: NSManagedObject {
 
-    @NSManaged var datetime: NSDate
-    @NSManaged var desc: String
     @NSManaged var id: String
     @NSManaged var user_id: String
+    @NSManaged var title: String
+    @NSManaged var desc: String
+    @NSManaged var photo: NSData
+    @NSManaged var photo_url: String
     @NSManaged var is_done: NSNumber
     @NSManaged var is_public: NSNumber
-    @NSManaged var photo: NSData
-    @NSManaged var title: String
+    @NSManaged var due: NSDate
+    @NSManaged var modified: NSDate
     @NSManaged var location: String
     @NSManaged var users: Users
 

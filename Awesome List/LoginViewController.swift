@@ -17,6 +17,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var loginButton: UIButton!
     var appDelegate = (UIApplication.sharedApplication().delegate) as AppDelegate
     var userKey: String?
+    var id: String?
+    var progressDone: Int = 0
+    var totalProgress: Int = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,32 +59,34 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                 ]
 
                 let indicator = CustomIndicator(view: self.view)
-                indicator.animate()
+                indicator.animate({
+                    self.progressDone = 0
+                    
+                    Alamofire.manager.request(.POST, API.url("auth"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                        if(json.boolValue){
+                            if(json["status"].integerValue==1){
+                                self.appDelegate.username = String(cred["username"]!)
+                                self.appDelegate.key = String(cred["key"]!)
+                                self.appDelegate.id = json["result"]["user_id"].stringValue
 
-                Alamofire.manager.request(.POST, API.url("auth"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
-                    if(json.boolValue){
-                        if(json["status"].integerValue==1){
-                            self.appDelegate.username = String(cred["username"]!)
-                            self.appDelegate.key = String(cred["key"]!)
+                                indicator.setLabel(label: "Updating data")
 
-                            // TODO: Update tasks
-                            // TODO: Update stats
-                            // TODO: Update friendship
-                            // TODO: Update dashboard
-
-                            self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                                self.initLogin(indicator)
+                            } else {
+                                indicator.stop({
+                                    alertView.message = json["message"].stringValue
+                                    alertView.show()
+                                })
+                            }
+                        } else {
+                            indicator.stop({
+                                println(error)
+                                alertView.message = error?.description
+                                alertView.show()
+                            })
                         }
-                        else {
-                            alertView.message = json["message"].stringValue
-                            alertView.show()
-                        }
-                    } else {
-                        println(error)
-                        alertView.message = "error?.description"
-                        alertView.show()
                     }
-                    indicator.stop()
-                }
+                }, label: "Authenticating existing user")
             }
         }
         else {
@@ -99,296 +104,473 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBAction func unwindToLogin(segue: UIStoryboardSegue){}
 
     @IBAction func doLogin(sender: AnyObject) {
-        let indicator = CustomIndicator(view: self.view)
-        indicator.animate()
-
-        let params = [
-            "username": inputUsername.text,
-            "password": inputPassword.text
-        ]
-        Alamofire.manager.request(.POST, API.url("auth"), parameters: params)
-            .responseSwiftyJSON {
-                (request, response, json, error) in
-                var alertView = UIAlertView()
-                alertView.title = "Login"
-                alertView.addButtonWithTitle("Okay")
-
-                if(json.boolValue){
-                    if(json["status"].integerValue==1){
-                        let indicator = CustomIndicator(view: self.view)
-                        indicator.animate()
-
-                        self.userKey = json["key"].stringValue!
-                        self.appDelegate.username = self.inputUsername.text
-                        self.appDelegate.key = self.userKey
-                        
-                        let params = [
-                            "key": String(self.userKey!)
-                        ]
-                        Alamofire.manager.request(.GET, API.url("account"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
-                            if(json.boolValue){
-                                if(json["status"].integerValue==1){
-                                    let userdata = json["result"]["user"]
-                                    
-                                    println("get local user")
-                                    // Delete existing user details
-                                    let moc: NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
-                                    let resultPredicate: NSPredicate = NSPredicate(format: "username = %@", userdata["username"].stringValue!)!
-
-                                    let results = SwiftCoreDataHelper.fetchEntities("Users", withPredicate: resultPredicate, withSorter: nil, managedObjectContext: moc)
-
-                                    var photoData: NSData = NSData()
-                                    var timelinePhotoData: NSData = NSData()
-                                    
-                                    
-                                    println(results)
-                                    
-                                    if(results.count>0){
-                                        
-                                        println("dld photo")
-                                        println(userdata["photo"].stringValue)
-
-                                        // Download profile photo and background photo, insert as well
-                                        if(userdata["photo"].stringValue != nil && userdata["photo"].stringValue != ""){
-                                            let imageURL = NSURL(string: userdata["photo"].stringValue!)
-                                            let imageData = NSData(contentsOfURL: imageURL!)
-                                            if(imageData != nil){
-                                                let image = UIImage(data: imageData!)
-                                                photoData = UIImageJPEGRepresentation(image, 100)
-                                            }
-                                        }
-                                        
-                                        println("dld bg")
-                                        println(userdata["timeline_photo"].stringValue)
-                                        
-                                        if(userdata["timeline_photo"].stringValue != nil && userdata["timeline_photo"].stringValue != ""){
-                                            let imageURL = NSURL(string: userdata["timeline_photo"].stringValue!)
-                                            let imageData = NSData(contentsOfURL: imageURL!)
-                                            if(imageData != nil){
-                                                let image = UIImage(data: imageData!)
-                                                timelinePhotoData = UIImageJPEGRepresentation(image, 100)
-                                            }
-                                        }
-
-                                        // Delete old data
-                                        for user in results {
-                                            var userItem = user as Users
-                                            moc.deleteObject(userItem)
-                                        }
-                                        SwiftCoreDataHelper.saveManagedObjectContext(moc)
-                                    }
-                                    
-                                    println("try to insert")
-                                    
-                                    // Insert latest user data
-                                    var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: moc)
-                                        as Users
-                                    user.id = userdata["id"].stringValue!
-                                    user.username = userdata["username"].stringValue!
-                                    user.firstname = userdata["firstname"].stringValue!
-                                    user.lastname = userdata["lastname"].stringValue!
-                                    user.email = userdata["email"].stringValue!
-                                    user.password = userdata["password"].stringValue!
-                                    user.company = userdata["company"].stringValue!
-                                    user.location = userdata["location"].stringValue!
-                                    user.photo = photoData
-                                    user.background = timelinePhotoData
-                                    SwiftCoreDataHelper.saveManagedObjectContext(moc)
-                                    
-                                    // TODO: Clean Friendship database
-                                    // TODO: Insert Friends (fresh)
-
-                                    /*
-                                    Alamofire.manager.request(.GET, API.url("tasks"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
-                                        if(json.boolValue){
-                                            if(json["status"].integerValue==1){
-                                                let fetchedTasks:Array<JSON> = json["result"]["tasks"].arrayValue!
-                                                for (index, singleTask) in enumerate(fetchedTasks) {
-                                                    // TODO: Process tasks
-                                                    println("--- \(index) ---")
-                                                    println(singleTask["title"].stringValue)
-                                                    println(singleTask["description"].stringValue)
-                                                    println(singleTask)
-                                                }
-                                            } else {
-                                                alertView.message = json["message"].stringValue
-                                                alertView.show()
-                                            }
-                                        } else {
-                                            println(error)
-                                            alertView.message = error?.description
-                                            alertView.show()
-                                        }
-                                    }*/
-                                    
-                                    self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
-                                } else {
-                                    alertView.message = json["message"].stringValue
-                                    alertView.show()
-                                }
-                            } else {
-                                println(error)
-                                alertView.message = error?.description
-                                alertView.show()
-                            }
-                            indicator.stop()
-                        }
-
-                        // TODO: Fetch friendship
-                        // TODO: Fetch stats
-                        // TODO: Fetch dashboard
-                        
-                        // TODO: Set name, photo, background, stats via delegate
-                        
-                        let moc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
-                        var insertItems = [
-                            "username": self.inputUsername.text,
-                            "key": self.userKey
-                        ]
-                        for (itemKey, itemValue) in insertItems {
-                            var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: moc)
-                                as Settings
-                            settings.varname = itemKey
-                            settings.value = itemValue
-                        }
-                        SwiftCoreDataHelper.saveManagedObjectContext(moc)
-                    } else {
-                        alertView.message = json["message"].stringValue
-                        alertView.show()
-                    }
-                } else {
-                    println(error)
-                    alertView.message = error?.description
-                    alertView.show()
-                }
-                indicator.stop()
-        }
-        
-
-
-        if(strcmp("get_single_task", "")<0){
-            let params = [
-                "key": "036db17bac87dbb1e610df07ccc2468e"
-            ]
-            let task_id = 1
-            Alamofire.manager.request(.GET, API.url("tasks/\(task_id)"), parameters: params)
-                .responseSwiftyJSON {
-                    (request, response, json, error) in
-                    println("---raw---")
-                    println(json)
-                    println("---error---")
-                    println(error)
-                    println("---status---")
-                    println(json["status"])
-                    println("---message---")
-                    println(json["message"])
-            }
-        }
-
-        if(strcmp("get_all_users_for_friendship", "")<0){
-            let params = [
-                "key": "036db17bac87dbb1e610df07ccc2468e"
-            ]
-            Alamofire.manager.request(.GET, API.url("users"), parameters: params)
-                .responseSwiftyJSON {
-                    (request, response, json, error) in
-                    println("---raw---")
-                    println(json)
-                    println("---error---")
-                    println(error)
-                    println("---status---")
-                    println(json["status"])
-                    println("---message---")
-                    println(json["message"])
-            }
-        }
-
-        if(strcmp("add_friend", "")<0){
-            let params = [
-                "key": "036db17bac87dbb1e610df07ccc2468e"
-            ]
-            let friend_with = "josua"
-            Alamofire.manager.request(.POST, API.url("tasks/\(friend_with)"), parameters: params)
-                .responseSwiftyJSON {
-                    (request, response, json, error) in
-                    println("---raw---")
-                    println(json)
-                    println("---error---")
-                    println(error)
-                    println("---status---")
-                    println(json["status"])
-                    println("---message---")
-                    println(json["message"])
-            }
-        }
-
-        if(strcmp("unfriend", "")<0){
-            let params = [
-                "key": "036db17bac87dbb1e610df07ccc2468e"
-            ]
-            let friend_with = "josua"
-            Alamofire.manager.request(.DELETE, API.url("tasks/\(friend_with)"), parameters: params)
-                .responseSwiftyJSON {
-                    (request, response, json, error) in
-                    println("---raw---")
-                    println(json)
-                    println("---error---")
-                    println(error)
-                    println("---status---")
-                    println(json["status"])
-                    println("---message---")
-                    println(json["message"])
-            }
-        }
-        
-        if(strcmp("old_way", "")<0){
-        /*let req = APIHelper(method: "GET", endpoint: "users")
-        let request = req.getRequest()
-        request.completionHandler = { response, data, error in
-            if error != nil {
-                // If there is an error in the web request, print it to the console
-                println(error)
-            }
-            else {
-                var err: NSError?
-                var jsonResult = NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.MutableContainers, error: &err) as NSDictionary
-                if err != nil {
-                    // If there is an error parsing JSON, print it to the console
-                    println("JSON Error \(err!.localizedDescription)")
-                }
-                else {
-                    let json_result = JSON(object: jsonResult)
-                    println(json_result["status"])
-                    println(json_result["message"])
-                    let users = json_result["result"]["users"]
-                    
-                    // Make it array
-                    let users_arr: Array<JSON> = json_result["result"]["users"].arrayValue!
-                    println(users_arr.count)
-                    for (index, user) in enumerate(users_arr) {
-                        println("\(index+1) ----")
-                        println(user)
-                    }
-                    
-                    /*
-                    let length = json_result["result"]["length"].integerValue
-                    println(length)
-                    // Use as it is (JSON type)
-                    for index in 0...length!-1 {
-                        println("\(index) --------")
-                        println(users[index])
-                    }*/
-                }
-            }
-        }
-        request.loadRequest()*/
-        }
-    }
-    
-    // Hide keyboard on press return
-    func textFieldShouldReturn(textField: UITextField!) -> Bool {
         inputUsername.resignFirstResponder()
         inputPassword.resignFirstResponder()
+
+        let indicator = CustomIndicator(view: self.view)
+        indicator.animate({
+            let params = [
+                "username": self.inputUsername.text,
+                "password": self.inputPassword.text
+            ]
+            Alamofire.manager.request(.POST, API.url("auth"), parameters: params)
+                .responseSwiftyJSON {
+                    (request, response, json, error) in
+                    var alertView = UIAlertView()
+                    alertView.title = "Login"
+                    alertView.addButtonWithTitle("Okay")
+                    self.totalProgress = 0
+
+                    if(json.boolValue){
+                        if(json["status"].integerValue==1){
+                            //var dateFormatter = NSDateFormatter()
+                            //dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                            //dateFormatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+
+                            indicator.setLabel(label: "Updating data")
+
+                            self.userKey = json["key"].stringValue!
+                            self.appDelegate.username = self.inputUsername.text
+                            self.appDelegate.key = self.userKey
+                            
+                            var insertItems = [
+                                "username": self.inputUsername.text,
+                                "key": self.userKey
+                            ]
+                            let keySettingsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                            for (itemKey, itemValue) in insertItems {
+                                var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: keySettingsMoc)
+                                    as Settings
+                                settings.varname = itemKey
+                                settings.value = itemValue
+                            }
+                            SwiftCoreDataHelper.saveManagedObjectContext(keySettingsMoc)
+                            
+                            self.initLogin(indicator)
+                            
+                            /*self.progressDone = 0
+                            
+                            var insertItems = [
+                                "username": self.inputUsername.text,
+                                "key": self.userKey
+                            ]
+                            let keySettingsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                            for (itemKey, itemValue) in insertItems {
+                                var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: keySettingsMoc)
+                                    as Settings
+                                settings.varname = itemKey
+                                settings.value = itemValue
+                            }
+                            SwiftCoreDataHelper.saveManagedObjectContext(keySettingsMoc)
+                            
+                            let params = [
+                                "key": String(self.userKey!)
+                            ]
+                            self.totalProgress += 1
+                            Alamofire.manager.request(.GET, API.url("account"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                                if(json.boolValue){
+                                    if(json["status"].integerValue==1){
+                                        let userdata = json["result"]["user"]
+
+                                        self.id = userdata["id"].stringValue!
+                                        self.appDelegate.id = self.id
+
+                                        let settingsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                        let settingResults:NSArray = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: nil, withSorter: nil, managedObjectContext: settingsMoc)
+
+                                        if(settingResults.count>0){
+                                            for setting in settingResults {
+                                                let singleSetting = setting as Settings
+                                                if(
+                                                    singleSetting.value == "id" ||
+                                                        singleSetting.value == "friends"
+                                                    ){
+                                                        settingsMoc.deleteObject(singleSetting)
+                                                }
+                                            }
+                                        }
+                                        SwiftCoreDataHelper.saveManagedObjectContext(settingsMoc)
+
+                                        var insertItems = [
+                                            "id": self.id,
+                                            "friends": json["result"]["length"].stringValue!
+                                        ]
+                                        for (itemKey, itemValue) in insertItems {
+                                            var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: settingsMoc)
+                                                as Settings
+                                            settings.varname = itemKey
+                                            settings.value = itemValue!
+                                        }
+                                        SwiftCoreDataHelper.saveManagedObjectContext(settingsMoc)
+                                        
+                                        // Delete existing user details
+                                        let accountUserMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                        let delUserResultPredicate: NSPredicate = NSPredicate(format: "username = %@", userdata["username"].stringValue!)!
+                                        let delUserResults = SwiftCoreDataHelper.fetchEntities("Users", withPredicate: delUserResultPredicate, withSorter: nil, managedObjectContext: accountUserMoc)
+
+                                        //var photoData: NSData = NSData()
+                                        //var timelinePhotoData: NSData = NSData()
+
+                                        if(delUserResults.count>0){
+                                            // Download profile photo and background photo, insert as well
+                                            // This may take longer if image not found
+                                            /*if(userdata["photo"].stringValue != nil && userdata["photo"].stringValue != ""){
+                                                let imageURL: String? = userdata["photo"].stringValue!
+                                                if(imageURL != nil && imageURL != ""){
+                                                    let imageData = NSData(contentsOfURL: NSURL(string: API.updateHost(imageURL!))!)
+                                                    if(imageData != nil){
+                                                        let image = UIImage(data: imageData!)
+                                                        photoData = UIImageJPEGRepresentation(image, 100)
+                                                    }
+                                                }
+                                            }
+                                            if(userdata["timeline_photo"].stringValue != nil && userdata["timeline_photo"].stringValue != ""){
+                                                let imageURL: String? = userdata["timeline_photo"].stringValue!
+                                                if(imageURL != nil && imageURL != ""){
+                                                    let imageData = NSData(contentsOfURL: NSURL(string: API.updateHost(imageURL!))!)
+                                                    if(imageData != nil){
+                                                        let image = UIImage(data: imageData!)
+                                                        timelinePhotoData = UIImageJPEGRepresentation(image, 100)
+                                                    }
+                                                }
+                                            }*/
+                                            // Delete old data
+                                            for delUser in delUserResults {
+                                                var delUserItem = delUser as Users
+                                                accountUserMoc.deleteObject(delUserItem)
+                                            }
+                                            SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                                        }
+
+                                        // Insert latest user data
+                                        var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: accountUserMoc)
+                                            as Users
+                                        user.id = userdata["id"].stringValue!
+                                        user.username = userdata["username"].stringValue!
+                                        user.firstname = userdata["firstname"].stringValue!
+                                        user.lastname = userdata["lastname"].stringValue!
+                                        user.email = userdata["email"].stringValue!
+                                        user.company = userdata["company"].stringValue!
+                                        user.location = userdata["location"].stringValue!
+                                        user.photo = NSData()//photoData
+                                        user.photo_url = userdata["photo"].stringValue!
+                                        user.background = NSData()//timelinePhotoData
+                                        user.background_url = userdata["timeline_photo"].stringValue!
+                                        SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                                        
+                                        // Delete existing friendship for the user
+                                        let resultPredicate: NSPredicate = NSPredicate(format: "my_id = %@", userdata["id"].stringValue!)!
+                                        let sorter:NSSortDescriptor? = NSSortDescriptor(key: "id" , ascending: false)
+                                        var friendshipResults = SwiftCoreDataHelper.fetchEntities("Friendship", withPredicate: resultPredicate, withSorter: sorter, managedObjectContext: accountUserMoc)
+                                        if(friendshipResults.count>0){
+                                            for friendshipResult in friendshipResults {
+                                                var friendshipItem = friendshipResult as Friendship
+                                                accountUserMoc.deleteObject(friendshipItem);
+                                            }
+                                            SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                                        }
+
+                                        // Insert new friendship data
+                                        let myFriendship:Array<JSON> = json["result"]["friends"].arrayValue!
+
+                                        if(json["result"]["length"].integerValue>0){
+                                            for(index, singleFFriend) in enumerate(myFriendship) {
+                                                var friend:Friendship = SwiftCoreDataHelper.insertManagedObject("Friendship", managedObjectConect: accountUserMoc) as Friendship
+                                                let fId = singleFFriend["id"].stringValue!
+                                                friend.id = "\(fId)_\(self.appDelegate.id)"
+                                                friend.my_id = self.appDelegate.id!
+                                                friend.my_username = self.appDelegate.username!
+                                                friend.friend_id = singleFFriend["friend_id"].stringValue!
+                                                friend.friend_username = singleFFriend["username"].stringValue!
+                                            }
+                                            SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                                        }
+                                        
+                                        self.progressDone += 1
+                                        println("\(self.progressDone)>=\(self.totalProgress)")
+                                        if(self.progressDone>=self.totalProgress){
+                                            indicator.stop({
+                                                self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                                            })
+                                        }
+                                    } else {
+                                        indicator.stop({
+                                            let customNotif = CustomNotification(view: self.view, label: json["message"].stringValue!)
+                                        })
+                                    }
+                                } else {
+                                    indicator.stop({
+                                        println(error)
+                                        alertView.message = error?.description
+                                        alertView.show()
+                                    })
+                                }
+                            }
+
+                            self.totalProgress += 1
+                            Alamofire.manager.request(.GET, API.url("stats"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                                if(json.boolValue){
+                                    if(json["status"].integerValue==1){
+                                        let statsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                        
+                                        let settingResults:NSArray = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: nil, withSorter: nil, managedObjectContext: statsMoc)
+                                        
+                                        if(settingResults.count>0){
+                                            for setting in settingResults {
+                                                let singleSetting = setting as Settings
+                                                if(
+                                                    singleSetting.value == "total_tasks" ||
+                                                        singleSetting.value == "week_tasks" ||
+                                                        singleSetting.value == "week_done" ||
+                                                        singleSetting.value == "month_tasks" ||
+                                                        singleSetting.value == "month_done"
+                                                    ){
+                                                        statsMoc.deleteObject(singleSetting)
+                                                }
+                                            }
+                                            SwiftCoreDataHelper.saveManagedObjectContext(statsMoc)
+                                        }
+                                        
+                                        let stats = json["result"]["stats"]
+                                        var insertItems = [
+                                            "total_tasks": (stats["total_tasks"].stringValue != nil) ? stats["total_tasks"].stringValue : "0",
+                                            "week_tasks": (stats["week_tasks"].stringValue != nil) ? stats["week_tasks"].stringValue : "0",
+                                            "week_done": (stats["week_done"].stringValue != nil) ? stats["week_done"].stringValue : "0",
+                                            "month_tasks": (stats["month_tasks"].stringValue != nil) ? stats["month_tasks"].stringValue : "0",
+                                            "month_done": (stats["month_done"].stringValue != nil) ? stats["month_done"].stringValue : "0"
+                                        ]
+                                        for (itemKey, itemValue) in insertItems {
+                                            var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: statsMoc)
+                                                as Settings
+                                            settings.varname = itemKey
+                                            settings.value = itemValue!
+                                        }
+                                        SwiftCoreDataHelper.saveManagedObjectContext(statsMoc)
+                                    } else {
+                                        alertView.message = json["message"].stringValue
+                                        alertView.show()
+                                    }
+                                } else {
+                                    println(error)
+                                    alertView.message = error?.description
+                                    alertView.show()
+                                }
+                                
+                                self.progressDone += 1
+                                println("\(self.progressDone)>=\(self.totalProgress)")
+                                if(self.progressDone>=self.totalProgress){
+                                    indicator.stop({
+                                        self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                                    })
+                                }
+                            }
+
+                            self.totalProgress += 1
+                            Alamofire.manager.request(.GET, API.url("tasks"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                                if(json.boolValue){
+                                    if(json["status"].integerValue==1){
+                                        var fetchedTasks:Array<JSON> = json["result"]["tasks"].arrayValue!
+
+                                        var tasksMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                        let tasksPredicate:NSPredicate? = NSPredicate(format:"user_id='\(self.appDelegate.id!)'")
+                                        let tasksSorter:NSSortDescriptor? = NSSortDescriptor(key: "due" , ascending: false)
+                                        var tasksResults:NSArray = SwiftCoreDataHelper.fetchEntities("Tasks", withPredicate: tasksPredicate, withSorter: tasksSorter, managedObjectContext: tasksMoc)
+
+                                        if(json["result"]["length"].integerValue>0){
+                                            if(tasksResults.count>0){
+                                                for taskResult in tasksResults {
+                                                    let singleTask:Tasks = taskResult as Tasks
+                                                    var recordExist: Bool = false
+                                                    for (index, singleFTask) in enumerate(fetchedTasks) {
+                                                        if(singleFTask["id"].stringValue==singleTask.id){
+                                                            recordExist = true
+                                                            let modDateStr = dateFormatter.stringFromDate(singleTask.modified)
+                                                            if(singleFTask["modified"].stringValue! != modDateStr){
+                                                                singleTask.title = singleFTask["title"].stringValue!
+                                                                singleTask.desc = singleFTask["desc"].stringValue!
+                                                                singleTask.is_public = singleFTask["public"].integerValue!
+                                                                singleTask.is_done = singleFTask["done"].integerValue!
+                                                                singleTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                                                singleTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                                                var photoData = NSData()
+                                                                if(singleFTask["photo"].stringValue != nil && singleFTask["photo"].stringValue != ""){
+                                                                    let imageURL: String? = singleFTask["photo"].stringValue!
+                                                                    if(imageURL != nil && imageURL != ""){
+                                                                        let imageData = NSData(contentsOfURL: NSURL(string: API.updateHost(imageURL!))!)
+                                                                        if(imageData != nil){
+                                                                            let image = UIImage(data: imageData!)
+                                                                            photoData = UIImageJPEGRepresentation(image, 100)
+                                                                        }
+                                                                    }
+                                                                }
+                                                                singleTask.photo = NSData()
+                                                                singleTask.photo_url = singleFTask["photo"].stringValue!
+                                                                SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                            } else {
+                                                                // Skip (no update)
+                                                            }
+                                                            // Remove from array after use
+                                                            fetchedTasks.removeAtIndex(index)
+                                                            break
+                                                        }
+                                                    }
+                                                    // Not in fetched, means it must have been removed
+                                                    if(!recordExist){
+                                                        tasksMoc.deleteObject(singleTask)
+                                                        SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                    }
+                                                }
+                                            }
+
+                                            // Insert new data for remaining tasks
+                                            if(fetchedTasks.count>0){
+                                                for (index, singleFTask) in enumerate(fetchedTasks) {
+                                                    var newTask:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: tasksMoc)
+                                                        as Tasks
+                                                    newTask.id = singleFTask["id"].stringValue!
+                                                    newTask.user_id = singleFTask["user_id"].stringValue!
+                                                    newTask.title = singleFTask["title"].stringValue!
+                                                    newTask.desc = singleFTask["desc"].stringValue!
+                                                    newTask.is_public = singleFTask["public"].integerValue!
+                                                    newTask.is_done = singleFTask["done"].integerValue!
+                                                    newTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                                    newTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                                    newTask.location = singleFTask["location"].stringValue!
+
+                                                    /*photoData = NSData()
+                                                    if(singleFTask["photo"].stringValue != nil && singleFTask["photo"].stringValue != ""){
+                                                        let imageURL: String? = singleFTask["photo"].stringValue!
+                                                        if(imageURL != nil && imageURL != ""){
+                                                            let imageData = NSData(contentsOfURL: NSURL(string: API.updateHost(imageURL!))!)
+                                                            if(imageData != nil){
+                                                                let image = UIImage(data: imageData!)
+                                                                photoData = UIImageJPEGRepresentation(image, 100)
+                                                            }
+                                                        }
+                                                    }*/
+                                                    newTask.photo = NSData()
+                                                    newTask.photo_url = singleFTask["photo"].stringValue!
+                                                }
+                                                SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                            }
+                                        }
+
+                                        Alamofire.manager.request(.GET, API.url("dashboard"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                                            if(json.boolValue){
+                                                if(json["status"].integerValue==1){
+                                                    var fetchedDashboardTasks:Array<JSON> = json["result"]["tasks"].arrayValue!
+                                                    var tasksMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                                    let tasksPredicate:NSPredicate? = NSPredicate(format:"user_id!='\(self.appDelegate.id!)'")
+                                                    let tasksSorter:NSSortDescriptor? = NSSortDescriptor(key: "due" , ascending: false)
+                                                    var tasksFResults:NSArray = SwiftCoreDataHelper.fetchEntities("Tasks", withPredicate: tasksPredicate, withSorter: tasksSorter, managedObjectContext: tasksMoc)
+                                                    
+                                                    if(json["result"]["length"].integerValue>0){
+                                                        if(tasksFResults.count>0){
+                                                            for taskResult in tasksFResults {
+                                                                let singleDTask:Tasks = taskResult as Tasks
+                                                                var recordExist: Bool = false
+                                                                for (fIndex, singleFTask) in enumerate(fetchedDashboardTasks) {
+                                                                    if(singleFTask["id"].stringValue==singleDTask.id){
+                                                                        recordExist = true
+                                                                        let modDateStr = dateFormatter.stringFromDate(singleDTask.modified)
+                                                                        if(singleFTask["modified"].stringValue! != modDateStr){
+                                                                            singleDTask.title = singleFTask["title"].stringValue!
+                                                                            singleDTask.desc = singleFTask["desc"].stringValue!
+                                                                            singleDTask.is_public = singleFTask["public"].integerValue!
+                                                                            singleDTask.is_done = singleFTask["done"].integerValue!
+                                                                            singleDTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                                                            singleDTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                                                            singleDTask.photo = NSData()
+                                                                            singleDTask.photo_url = singleFTask["photo"].stringValue!
+                                                                            SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                                        } else {
+                                                                            // Skip (no update)
+                                                                        }
+                                                                        // Remove from array after use
+                                                                        fetchedDashboardTasks.removeAtIndex(fIndex)
+                                                                        break
+                                                                    }
+                                                                }
+                                                                // Not in fetched, means it must have been removed
+                                                                if(!recordExist){
+                                                                    tasksMoc.deleteObject(singleDTask)
+                                                                    SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        // Insert new data for remaining tasks
+                                                        if(fetchedDashboardTasks.count>0){
+                                                            for (index, singleFTask) in enumerate(fetchedDashboardTasks) {
+                                                                var newTask:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: tasksMoc)
+                                                                    as Tasks
+                                                                newTask.id = singleFTask["id"].stringValue!
+                                                                newTask.user_id = singleFTask["user_id"].stringValue!
+                                                                newTask.title = singleFTask["title"].stringValue!
+                                                                newTask.desc = singleFTask["desc"].stringValue!
+                                                                newTask.is_public = singleFTask["public"].integerValue!
+                                                                newTask.is_done = singleFTask["done"].integerValue!
+                                                                newTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                                                newTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                                                newTask.location = singleFTask["location"].stringValue!
+                                                                newTask.photo = NSData()
+                                                                newTask.photo_url = singleFTask["photo"].stringValue!
+                                                            }
+                                                            SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                        }
+                                                    }
+                                                    self.progressDone += 1
+                                                    println("\(self.progressDone)>=\(self.totalProgress)")
+                                                    if(self.progressDone>=self.totalProgress){
+                                                        indicator.stop({
+                                                            self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                                                        })
+                                                    }
+                                                } else {
+                                                    indicator.stop({
+                                                        alertView.message = json["message"].stringValue
+                                                        alertView.show()
+                                                    })
+                                                }
+                                            } else {
+                                                indicator.stop({
+                                                    alertView.message = error?.description
+                                                    alertView.show()
+                                                })
+                                            }
+                                        }
+                                    } else {
+                                        indicator.stop({
+                                            alertView.message = json["message"].stringValue
+                                            alertView.show()
+                                        })
+                                    }
+                                } else {
+                                    indicator.stop({
+                                        alertView.message = error?.description
+                                        alertView.show()
+                                    })
+                                }
+                            }*/
+                        } else {
+                            indicator.stop({
+                                alertView.message = json["message"].stringValue
+                                alertView.show()
+                            })
+                        }
+                    } else {
+                        indicator.stop({
+                            println(error)
+                            alertView.message = error?.description
+                            alertView.show()
+                        })
+                    }
+            }
+        }, label: "Authenticating user")
+    }
+
+    // Hide keyboard on press return
+    func textFieldShouldReturn(textField: UITextField!) -> Bool {
         self.doLogin(textField)
         return true;
     }
@@ -397,5 +579,380 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         inputUsername.resignFirstResponder()
         inputPassword.resignFirstResponder()
         self.view.endEditing(true)
+    }
+
+    func initLogin(indicator: CustomIndicator){
+        var alertView = UIAlertView()
+        alertView.title = "Login"
+        alertView.addButtonWithTitle("Okay")
+        self.totalProgress = 0
+
+        var dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        dateFormatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+        
+        indicator.setLabel(label: "Updating data")
+
+        self.progressDone = 0
+        
+        let params = [
+            "key": String(self.appDelegate.key!)
+        ]
+        self.totalProgress += 1
+        Alamofire.manager.request(.GET, API.url("account"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+            if(json.boolValue){
+                if(json["status"].integerValue==1){
+                    let userdata = json["result"]["user"]
+                    
+                    self.id = userdata["id"].stringValue!
+                    self.appDelegate.id = self.id
+                    
+                    let settingsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                    let settingResults:NSArray = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: nil, withSorter: nil, managedObjectContext: settingsMoc)
+                    
+                    if(settingResults.count>0){
+                        for setting in settingResults {
+                            let singleSetting = setting as Settings
+                            if(
+                                singleSetting.value == "id" ||
+                                    singleSetting.value == "friends"
+                                ){
+                                    settingsMoc.deleteObject(singleSetting)
+                            }
+                        }
+                    }
+                    SwiftCoreDataHelper.saveManagedObjectContext(settingsMoc)
+                    
+                    var insertItems = [
+                        "id": self.id,
+                        "friends": json["result"]["length"].stringValue!
+                    ]
+                    for (itemKey, itemValue) in insertItems {
+                        var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: settingsMoc)
+                            as Settings
+                        settings.varname = itemKey
+                        settings.value = itemValue!
+                    }
+                    SwiftCoreDataHelper.saveManagedObjectContext(settingsMoc)
+                    
+                    // Delete existing user details
+                    let accountUserMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                    let delUserResultPredicate: NSPredicate = NSPredicate(format: "username = %@", userdata["username"].stringValue!)!
+                    let delUserResults = SwiftCoreDataHelper.fetchEntities("Users", withPredicate: delUserResultPredicate, withSorter: nil, managedObjectContext: accountUserMoc)
+
+                    if(delUserResults.count>0){
+                        // Delete old data
+                        for delUser in delUserResults {
+                            var delUserItem = delUser as Users
+                            accountUserMoc.deleteObject(delUserItem)
+                        }
+                        SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                    }
+                    
+                    // Insert latest user data
+                    var user:Users = SwiftCoreDataHelper.insertManagedObject("Users", managedObjectConect: accountUserMoc)
+                        as Users
+                    user.id = userdata["id"].stringValue!
+                    user.username = userdata["username"].stringValue!
+                    user.firstname = userdata["firstname"].stringValue!
+                    user.lastname = userdata["lastname"].stringValue!
+                    user.email = userdata["email"].stringValue!
+                    user.company = userdata["company"].stringValue!
+                    user.location = userdata["location"].stringValue!
+                    user.photo = NSData()//photoData
+                    user.photo_url = userdata["photo"].stringValue!
+                    user.background = NSData()//timelinePhotoData
+                    user.background_url = userdata["timeline_photo"].stringValue!
+                    SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                    
+                    // Delete existing friendship for the user
+                    let resultPredicate: NSPredicate = NSPredicate(format: "my_id = %@", userdata["id"].stringValue!)!
+                    let sorter:NSSortDescriptor? = NSSortDescriptor(key: "id" , ascending: false)
+                    var friendshipResults = SwiftCoreDataHelper.fetchEntities("Friendship", withPredicate: resultPredicate, withSorter: sorter, managedObjectContext: accountUserMoc)
+                    if(friendshipResults.count>0){
+                        for friendshipResult in friendshipResults {
+                            var friendshipItem = friendshipResult as Friendship
+                            accountUserMoc.deleteObject(friendshipItem);
+                        }
+                        SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                    }
+                    
+                    // Insert new friendship data
+                    let myFriendship:Array<JSON> = json["result"]["friends"].arrayValue!
+                    
+                    if(json["result"]["length"].integerValue>0){
+                        for(index, singleFFriend) in enumerate(myFriendship) {
+                            var friend:Friendship = SwiftCoreDataHelper.insertManagedObject("Friendship", managedObjectConect: accountUserMoc) as Friendship
+                            let fId = singleFFriend["id"].stringValue!
+                            friend.id = "\(fId)_\(self.appDelegate.id)"
+                            friend.my_id = self.appDelegate.id!
+                            friend.my_username = self.appDelegate.username!
+                            friend.friend_id = singleFFriend["friend_id"].stringValue!
+                            friend.friend_username = singleFFriend["username"].stringValue!
+                        }
+                        SwiftCoreDataHelper.saveManagedObjectContext(accountUserMoc)
+                    }
+                    
+                    self.progressDone += 1
+                    indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+                    if(self.progressDone>=self.totalProgress){
+                        indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+                        indicator.stop({
+                            self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                        })
+                    }
+                } else {
+                    indicator.stop({
+                        let customNotif = CustomNotification(view: self.view, label: json["message"].stringValue!)
+                    })
+                }
+            } else {
+                indicator.stop({
+                    println(error)
+                    alertView.message = error?.description
+                    alertView.show()
+                })
+            }
+        }
+        
+        self.totalProgress += 1
+        Alamofire.manager.request(.GET, API.url("stats"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+            if(json.boolValue){
+                if(json["status"].integerValue==1){
+                    let statsMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                    
+                    let settingResults:NSArray = SwiftCoreDataHelper.fetchEntities("Settings", withPredicate: nil, withSorter: nil, managedObjectContext: statsMoc)
+                    
+                    if(settingResults.count>0){
+                        for setting in settingResults {
+                            let singleSetting = setting as Settings
+                            if(
+                                singleSetting.value == "total_tasks" ||
+                                    singleSetting.value == "week_tasks" ||
+                                    singleSetting.value == "week_done" ||
+                                    singleSetting.value == "month_tasks" ||
+                                    singleSetting.value == "month_done"
+                                ){
+                                    statsMoc.deleteObject(singleSetting)
+                            }
+                        }
+                        SwiftCoreDataHelper.saveManagedObjectContext(statsMoc)
+                    }
+                    
+                    let stats = json["result"]["stats"]
+                    var insertItems = [
+                        "total_tasks": (stats["total_tasks"].stringValue != nil) ? stats["total_tasks"].stringValue : "0",
+                        "week_tasks": (stats["week_tasks"].stringValue != nil) ? stats["week_tasks"].stringValue : "0",
+                        "week_done": (stats["week_done"].stringValue != nil) ? stats["week_done"].stringValue : "0",
+                        "month_tasks": (stats["month_tasks"].stringValue != nil) ? stats["month_tasks"].stringValue : "0",
+                        "month_done": (stats["month_done"].stringValue != nil) ? stats["month_done"].stringValue : "0"
+                    ]
+                    for (itemKey, itemValue) in insertItems {
+                        var settings:Settings = SwiftCoreDataHelper.insertManagedObject("Settings", managedObjectConect: statsMoc)
+                            as Settings
+                        settings.varname = itemKey
+                        settings.value = itemValue!
+                    }
+                    SwiftCoreDataHelper.saveManagedObjectContext(statsMoc)
+                } else {
+                    alertView.message = json["message"].stringValue
+                    alertView.show()
+                }
+            } else {
+                println(error)
+                alertView.message = error?.description
+                alertView.show()
+            }
+            
+            self.progressDone += 1
+            indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+            if(self.progressDone>=self.totalProgress){
+                indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+                indicator.stop({
+                    self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                })
+            }
+        }
+        
+        self.totalProgress += 1
+        Alamofire.manager.request(.GET, API.url("tasks"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+            if(json.boolValue){
+                if(json["status"].integerValue==1){
+                    var fetchedTasks:Array<JSON> = json["result"]["tasks"].arrayValue!
+                    
+                    var tasksMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                    let tasksPredicate:NSPredicate? = NSPredicate(format:"user_id='\(self.appDelegate.id!)'")
+                    let tasksSorter:NSSortDescriptor? = NSSortDescriptor(key: "id" , ascending: false)
+                    var tasksResults:NSArray = SwiftCoreDataHelper.fetchEntities("Tasks", withPredicate: tasksPredicate, withSorter: tasksSorter, managedObjectContext: tasksMoc)
+
+                    if(json["result"]["length"].integerValue>0){
+                        if(tasksResults.count>0){
+                            for taskResult in tasksResults {
+                                let singleTask:Tasks = taskResult as Tasks
+                                var recordExist: Bool = false
+                                for (index, singleFTask) in enumerate(fetchedTasks) {
+                                    if(singleFTask["id"].stringValue==singleTask.id){
+                                        recordExist = true
+
+                                        var modDateStr = ""
+                                        if(singleTask.valueForKey("modified") != nil){
+                                            modDateStr = dateFormatter.stringFromDate(singleTask.modified)
+                                        }
+                                        if(singleFTask["modified"].stringValue! != modDateStr){
+                                            singleTask.title = singleFTask["title"].stringValue!
+                                            singleTask.desc = singleFTask["desc"].stringValue!
+                                            singleTask.is_public = singleFTask["public"].integerValue!
+                                            singleTask.is_done = singleFTask["done"].integerValue!
+                                            singleTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                            singleTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                            var photoData = NSData()
+                                            if(singleFTask["photo"].stringValue != nil && singleFTask["photo"].stringValue != ""){
+                                                let imageURL: String? = singleFTask["photo"].stringValue!
+                                                if(imageURL != nil && imageURL != ""){
+                                                    let imageData = NSData(contentsOfURL: NSURL(string: API.updateHost(imageURL!))!)
+                                                    if(imageData != nil){
+                                                        let image = UIImage(data: imageData!)
+                                                        photoData = UIImageJPEGRepresentation(image, 100)
+                                                    }
+                                                }
+                                            }
+                                            singleTask.photo = NSData()
+                                            singleTask.photo_url = singleFTask["photo"].stringValue!
+                                            SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                        } else {
+                                            // Skip (no update)
+                                        }
+                                        // Remove from array after use
+                                        fetchedTasks.removeAtIndex(index)
+                                        break
+                                    }
+                                }
+                                // Not in fetched, means it must have been removed
+                                if(!recordExist){
+                                    tasksMoc.deleteObject(singleTask)
+                                    SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                }
+                            }
+                        }
+
+                        // Insert new data for remaining tasks
+                        if(fetchedTasks.count>0){
+                            for (index, singleFTask) in enumerate(fetchedTasks) {
+                                var newTask:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: tasksMoc)
+                                    as Tasks
+                                newTask.id = singleFTask["id"].stringValue!
+                                newTask.user_id = singleFTask["user_id"].stringValue!
+                                newTask.title = singleFTask["title"].stringValue!
+                                newTask.desc = singleFTask["desc"].stringValue!
+                                newTask.is_public = singleFTask["public"].integerValue!
+                                newTask.is_done = singleFTask["done"].integerValue!
+                                newTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                newTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                newTask.location = singleFTask["location"].stringValue!
+                                newTask.photo = NSData()
+                                newTask.photo_url = singleFTask["photo"].stringValue!
+                            }
+                            SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                        }
+                    }
+                    
+                    Alamofire.manager.request(.GET, API.url("dashboard"), parameters: params).responseSwiftyJSON { (request, response, json, error) in
+                        if(json.boolValue){
+                            if(json["status"].integerValue==1){
+                                var fetchedDashboardTasks:Array<JSON> = json["result"]["tasks"].arrayValue!
+                                var tasksMoc:NSManagedObjectContext = SwiftCoreDataHelper.managedObjectContext()
+                                let tasksPredicate:NSPredicate? = NSPredicate(format:"user_id!='\(self.appDelegate.id!)'")
+                                let tasksSorter:NSSortDescriptor? = NSSortDescriptor(key: "due" , ascending: false)
+                                var tasksFResults:NSArray = SwiftCoreDataHelper.fetchEntities("Tasks", withPredicate: tasksPredicate, withSorter: tasksSorter, managedObjectContext: tasksMoc)
+                                
+                                if(json["result"]["length"].integerValue>0){
+                                    if(tasksFResults.count>0){
+                                        for taskResult in tasksFResults {
+                                            let singleDTask:Tasks = taskResult as Tasks
+                                            var recordExist: Bool = false
+                                            for (fIndex, singleFTask) in enumerate(fetchedDashboardTasks) {
+                                                if(singleFTask["id"].stringValue==singleDTask.id){
+                                                    recordExist = true
+                                                    let modDateStr = dateFormatter.stringFromDate(singleDTask.modified)
+                                                    if(singleFTask["modified"].stringValue! != modDateStr){
+                                                        singleDTask.title = singleFTask["title"].stringValue!
+                                                        singleDTask.desc = singleFTask["desc"].stringValue!
+                                                        singleDTask.is_public = singleFTask["public"].integerValue!
+                                                        singleDTask.is_done = singleFTask["done"].integerValue!
+                                                        singleDTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                                        singleDTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                                        singleDTask.photo = NSData()
+                                                        singleDTask.photo_url = singleFTask["photo"].stringValue!
+                                                        SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                                    } else {
+                                                        // Skip (no update)
+                                                    }
+                                                    // Remove from array after use
+                                                    fetchedDashboardTasks.removeAtIndex(fIndex)
+                                                    break
+                                                }
+                                            }
+                                            // Not in fetched, means it must have been removed
+                                            if(!recordExist){
+                                                tasksMoc.deleteObject(singleDTask)
+                                                SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Insert new data for remaining tasks
+                                    if(fetchedDashboardTasks.count>0){
+                                        for (index, singleFTask) in enumerate(fetchedDashboardTasks) {
+                                            var newTask:Tasks = SwiftCoreDataHelper.insertManagedObject("Tasks", managedObjectConect: tasksMoc)
+                                                as Tasks
+                                            newTask.id = singleFTask["id"].stringValue!
+                                            newTask.user_id = singleFTask["user_id"].stringValue!
+                                            newTask.title = singleFTask["title"].stringValue!
+                                            newTask.desc = singleFTask["desc"].stringValue!
+                                            newTask.is_public = singleFTask["public"].integerValue!
+                                            newTask.is_done = singleFTask["done"].integerValue!
+                                            newTask.due = dateFormatter.dateFromString(singleFTask["due"].stringValue!)!
+                                            newTask.modified = dateFormatter.dateFromString(singleFTask["modified"].stringValue!)!
+                                            newTask.location = singleFTask["location"].stringValue!
+                                            newTask.photo = NSData()
+                                            newTask.photo_url = singleFTask["photo"].stringValue!
+                                        }
+                                        SwiftCoreDataHelper.saveManagedObjectContext(tasksMoc)
+                                    }
+                                }
+                                self.progressDone += 1
+                                indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+                                if(self.progressDone>=self.totalProgress){
+                                    indicator.setLabel(label: "Updating data \(self.progressDone) of \(self.totalProgress)")
+                                    indicator.stop({
+                                        self.performSegueWithIdentifier("pushToHomeViewController", sender: self)
+                                    })
+                                }
+                            } else {
+                                indicator.stop({
+                                    alertView.message = json["message"].stringValue
+                                    alertView.show()
+                                })
+                            }
+                        } else {
+                            indicator.stop({
+                                alertView.message = error?.description
+                                alertView.show()
+                            })
+                        }
+                    }
+                } else {
+                    indicator.stop({
+                        alertView.message = json["message"].stringValue
+                        alertView.show()
+                    })
+                }
+            } else {
+                indicator.stop({
+                    alertView.message = error?.description
+                    alertView.show()
+                })
+            }
+        }
     }
 }

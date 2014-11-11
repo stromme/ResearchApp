@@ -9,6 +9,46 @@
 import Foundation
 import UIKit
 
+// Storing our API's properties, useful for Type Method
+public class APIProps {
+    internal var api_protocol: String = "https"
+    internal var host: String = "awesome-list-api.herokuapp.com"
+    internal var path: String = "/api/"
+    internal var endpoint: String?
+    
+    init(){
+        self.endpoint = ""
+    }
+    
+    public func setHost(host: String) {
+        self.host = host
+    }
+    
+    public func setProtocol(api_protocol: String) {
+        self.api_protocol = api_protocol
+    }
+    
+    public func setPath(path: String) {
+        self.path = path
+    }
+    
+    public func setEndpoint(endpoint: String) {
+        self.endpoint! = endpoint
+    }
+
+    public func getPath() -> String {
+        return self.path
+    }
+
+    public func getHost() -> String {
+        return self.host
+    }
+    
+    public func getURL() -> String {
+        return "\(self.api_protocol)://\(self.host)\(self.path)\(self.endpoint!)"
+    }
+}
+
 public class API {
     // MARK: - Types
     
@@ -33,8 +73,31 @@ public class API {
         self.responseType = responseType
     }
 
-    class func url(endpoint: String) -> String {
-        return "http://172.20.10.6/awesome_list/api/\(endpoint)"
+    class func url(endpoint: String, host: String? = nil) -> String {
+        let api_props = APIProps()
+        api_props.setEndpoint(endpoint)
+        if(host != nil){
+            api_props.setHost(host!)
+        }
+        return api_props.getURL()
+    }
+
+    class func updateHost(url: String) -> String {
+        let splitted = url.componentsSeparatedByString("/")
+        if(splitted.count>0){
+            let api_props = APIProps()
+            var new_url: String = ""
+            for (index, part) in enumerate(splitted) {
+                if(index==2){
+                    new_url += api_props.getHost() + ((index < splitted.count - 1) ? "/" : "")
+                }
+                else {
+                    new_url += part + ((index < splitted.count - 1) ? "/" : "")
+                }
+            }
+            return new_url
+        }
+        return url
     }
 
     func request(method: Method, endpoint: String, parameters: Dictionary<String, AnyObject>? = nil, media_upload: NSData? = nil, media_filename: String? = nil, uploadProgress: SwifterHTTPRequest.UploadProgressHandler? = nil, downloadProgress: SuccessHandler? = nil, success: SuccessHandler? = nil, failure: SwifterHTTPRequest.FailureHandler? = nil) {
@@ -81,7 +144,7 @@ public class API {
             
             let jsonResult = JSON(data: data, options: nil, error: &error)
             let stringResult = NSString(data: data, encoding: NSASCIIStringEncoding)
-            
+
             if jsonResult || self.responseType=="string"{
                 downloadProgress?(json: jsonResult, string: stringResult!, response: response)
             } else {
